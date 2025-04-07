@@ -1,0 +1,45 @@
+import os
+import sys
+import random
+import subprocess
+from PySide import QtGui,QtCore
+from threading import Thread
+
+mw = Gui.getMainWindow()
+rv = mw.findChild(QtGui.QTextEdit, "Report view")
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+fartBankDir = os.path.join(script_dir, "fartBank")
+
+# Debug: Print the paths to verify they are correct
+print(f"Fart Bank Path: {fartBankDir}")
+
+if not os.path.exists(fartBankDir):
+    # print(f"Error: The folder '{fartBankDir}' does not exist.")
+    sys.exit(1)
+
+def prepare_fart(subFartFolder):
+    return [f for f in os.listdir(subFartFolder) if f.endswith('.mp3')]
+
+fart_list = prepare_fart(fartBankDir)
+
+def fartCAD(filename, is_async):
+    fart_incoming = os.path.join(fartBankDir, random.choice(fart_list))
+
+    if is_async :
+        thread = Thread(target=fartCAD, args=(fart_incoming, False))
+        thread.start()
+    else:
+        subprocess.call(["afplay", fart_incoming])
+
+def onMsg():
+    fartCAD("fartBank", True)
+
+modifiers = QtGui.QApplication.keyboardModifiers()
+if modifiers == QtCore.Qt.ControlModifier:
+    rv.textChanged.disconnect()
+    FreeCAD.Console.PrintMessage('Fart observer disconnected\n')
+else:
+    rv.textChanged.connect(onMsg)
+    FreeCAD.Console.PrintMessage('Fart observer connected\n')
